@@ -62,35 +62,40 @@ public class UserService{
     public List<UserResponse> fetchAllUsers(){
 
         return userRepo.findAll().stream()
-                .map(this::mapToUserResponse).collect(Collectors.toList());
+                .map(this::mapToUserResponse)
+                .collect(Collectors.toList());
     }
 
     public Optional<UserResponse> fetchUser(Long id){
 
-        return userRepo.findById(id).map(this::mapToUserResponse);
+        return userRepo.findById(id)
+                .map(this::mapToUserResponse);
     }
 
     public void addUser(UserRequest userRequest){
+
         User user = new User();
         updateFromUserRequest(userRequest,user);
         userRepo.save(user);
     }
 
-    public boolean updateUser(Long id,UserRequest updatedUserFromRequest){
+    public boolean updateUser(Long id,UserRequest updatedUserRequest){
+
         return userRepo.findById(id)
                 .map(existingUser -> {
-                    updateFromUserRequest(updatedUserFromRequest,existingUser);
+                    updateFromUserRequest(updatedUserRequest,existingUser);
                     userRepo.save(existingUser);
                     return true;
                 }).orElse(false);
     }
 
     private UserResponse mapToUserResponse(User user){
-        UserResponse userResponse = new UserResponse();
-        userResponse.setFirstName(user.getFirstName());
-        userResponse.setLastName(user.getLastName());
-        userResponse.setEmail(user.getEmail());
-        userResponse.setPhone(user.getPhone());
+        UserResponse responses = new UserResponse();
+        responses.setId(String.valueOf(user.getId()));
+        responses.setFirstName(user.getFirstName());
+        responses.setLastName(user.getLastName());
+        responses.setEmail(user.getEmail());
+        responses.setPhone(user.getPhone());
 
         if(user.getAddress() != null){
             AddressDTO addressDTO = new AddressDTO();
@@ -98,14 +103,14 @@ public class UserService{
             addressDTO.setCity(user.getAddress().getCity());
             addressDTO.setState(user.getAddress().getState());
             addressDTO.setCountry(user.getAddress().getCountry());
-
-            userResponse.setAddress(addressDTO);
-
+            addressDTO.setZipcode(user.getAddress().getZipcode());
+            responses.setAddress(addressDTO);
         }
-        return userResponse;
+
+        return responses;
     }
 
-    private void updateFromUserRequest(UserRequest userRequest, User user){
+    private void updateFromUserRequest(UserRequest userRequest,User user){
         user.setFirstName(userRequest.getFirstName());
         user.setLastName(userRequest.getLastName());
         user.setEmail(userRequest.getEmail());
@@ -117,6 +122,7 @@ public class UserService{
             address.setCity(userRequest.getAddress().getCity());
             address.setState(userRequest.getAddress().getState());
             address.setCountry(userRequest.getAddress().getCountry());
+            address.setZipcode(userRequest.getAddress().getZipcode());
             user.setAddress(address);
         }
     }
